@@ -43,12 +43,22 @@ object AuthNavGraph: BaseNavGraph {
                     modifier,
                     onNavigateToRegister={
                         navController.navigate(Dest.Register)
-                    } )
+                    } ,
+                    navigateToNotesNavGraph={
+                        navController.navigate(NotesNavGraph.Dest.Root){
+                            popUpTo(0){
+                                inclusive = true
+                            }
+                        }
+                    }
+                )
             }
-            composable<Dest.Register> { RegisterScreen(
-                modifier = Modifier,
-                onNavigate = { navController.popBackStack() }
-            ) }
+            composable<Dest.Register> {
+                RegisterScreen(
+                    modifier = Modifier,
+                    popToRegisterScreen = { navController.popBackStack() } ,
+                )
+            }
             composable<Dest.ForgotPassword> {  }
             composable<Dest.ResetPassword> {  }
             composable<Dest.VerifyOtp> {  }

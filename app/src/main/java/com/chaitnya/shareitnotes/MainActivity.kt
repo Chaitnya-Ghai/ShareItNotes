@@ -15,12 +15,19 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.chaitnya.shareitnotes.navigation.AuthNavGraph
 import com.chaitnya.shareitnotes.navigation.BaseNavGraph
+import com.chaitnya.shareitnotes.navigation.NotesNavGraph
 import com.chaitnya.shareitnotes.ui.theme.ShareItNotesTheme
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var firebaseAuth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -28,9 +35,10 @@ class MainActivity : ComponentActivity() {
             ShareItNotesTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val navController = rememberNavController()
-                    NavHost(navController, startDestination = AuthNavGraph.Dest.Root) {
+                    NavHost(navController, startDestination = if (firebaseAuth.currentUser==null) AuthNavGraph.Dest.Root else NotesNavGraph.Dest.Root) {
                         listOf<BaseNavGraph>(
-                            AuthNavGraph
+                            AuthNavGraph,
+                            NotesNavGraph
                         ).forEach {
                             it.build(
                                 modifier = Modifier.padding(innerPadding),

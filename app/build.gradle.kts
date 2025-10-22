@@ -6,7 +6,6 @@ plugins {
     kotlin("plugin.serialization") version "2.0.0"
     alias(libs.plugins.google.services)
     id("org.jetbrains.kotlin.kapt") // using kapt for Di
-
 }
 
 android {
@@ -85,5 +84,11 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     implementation(libs.navigation.compose)
+
+    // Mockito (core + Kotlin extensions)
+    testImplementation("org.mockito:mockito-core:5.11.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+
 
 }

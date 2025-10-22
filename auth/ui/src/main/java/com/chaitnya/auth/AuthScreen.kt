@@ -8,15 +8,33 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun AuthScreen(
     modifier: Modifier = Modifier,
-    onNavigateToRegister : ()-> Unit
+    onNavigateToRegister : ()-> Unit,
+    navigateToNotesNavGraph : ()-> Unit
 ){
+    val viewModel = hiltViewModel<AuthViewModel>()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val email = viewModel.email.collectAsStateWithLifecycle()
+    val password = viewModel.password.collectAsStateWithLifecycle()
+    val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
+    val isLogin = viewModel.isLogin.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState) {
+        if (uiState.navigateToNotesNavGraph){
+            navigateToNotesNavGraph()
+        }
+    }
+
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -31,7 +49,7 @@ fun AuthScreen(
 }
 
 @Composable
-fun RegisterScreen( modifier: Modifier = Modifier , onNavigate:()->Unit ){
+fun RegisterScreen( modifier: Modifier = Modifier , popToRegisterScreen:()->Unit ){
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -42,7 +60,7 @@ fun RegisterScreen( modifier: Modifier = Modifier , onNavigate:()->Unit ){
             modifier= Modifier.padding(8.dp)
         )
         Button(
-            onClick = {onNavigate()}
+            onClick = {popToRegisterScreen()}
         ) {
             Text("pop")
         }

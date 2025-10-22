@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
@@ -26,20 +27,23 @@ class AuthViewModel @Inject constructor(
     private val logoutUseCase: LogoutUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase
 ): ViewModel() {
+    private val _uiState = MutableStateFlow(AuthUiState())
+    val uiState = _uiState.asStateFlow()
+
     private val _email = MutableStateFlow("")
-    val email get() = _email.asStateFlow()
+    val email = _email.asStateFlow()
 
     private val _password = MutableStateFlow("")
-    val password get() = _password.asStateFlow()
+    val password = _password.asStateFlow()
 
     private val _name = MutableStateFlow("")
-    val name get() = _name.asStateFlow()
+    val name = _name.asStateFlow()
 
     private val _isLogin = MutableStateFlow(true)
-    val isLogin get() = _name.asStateFlow()
+    val isLogin = _name.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
-    val isLoading get() = _isLoading.asStateFlow()
+    val isLoading = _isLoading.asStateFlow()
 
     fun onEmailChange(email: String){
         _email.update { email }
@@ -59,10 +63,14 @@ class AuthViewModel @Inject constructor(
         logInUseCase(email.value, password.value).onStart { _isLoading.update { true } }
             .onEach { result ->
                 result.onSuccess { data ->
+                    _uiState.update { it.copy(navigateToNotesNavGraph = true) }
                     _isLoading.update { false }
                 }.onFailure { error ->
                 }
             }.catch { _isLoading.update { false } }
+            .onCompletion {
+                _uiState.update { it.copy(navigateToNotesNavGraph = true) }
+            }
             .flowOn(Dispatchers.IO)
             .launchIn(viewModelScope)
     }
@@ -72,11 +80,14 @@ class AuthViewModel @Inject constructor(
             .onEach { result ->
                 _isLoading.update { false }
                 result.onSuccess { data ->
-
+                    _uiState.update { it.copy(navigateToNotesNavGraph = true) }
                 }.onFailure { error ->
 
                 }
             }.catch { _isLoading.update { false } }
+            .onCompletion {
+                _uiState.update { it.copy(navigateToNotesNavGraph = true) }
+            }
             .flowOn(Dispatchers.IO)
             .launchIn(viewModelScope)
     }
