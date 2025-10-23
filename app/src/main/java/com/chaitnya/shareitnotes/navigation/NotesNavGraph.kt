@@ -1,5 +1,7 @@
 package com.chaitnya.shareitnotes.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -22,6 +24,7 @@ object NotesNavGraph : BaseNavGraph {
         @Serializable
         data class NoteDetail(val noteId : String?) : Dest
     }
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun build(
         modifier: Modifier,
         navController: NavController,
@@ -39,9 +42,8 @@ object NotesNavGraph : BaseNavGraph {
                 val id = noteDetail.toRoute<Dest.NoteDetail>().noteId
                 AddEditScreen(
                     modifier,
-                    id=id,
-                    { navController.popBackStack() }
-                )
+                    id=id
+                ) { navController.popBackStack() }
             }
 
         }

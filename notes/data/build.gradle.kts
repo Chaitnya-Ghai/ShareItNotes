@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
     implementation(platform("io.github.jan-tennert.supabase:bom:3.2.5"))
+    implementation("io.ktor:ktor-client-android:3.3.1")
     implementation("io.github.jan-tennert.supabase:storage-kt:3.2.5")
 
     implementation(libs.dagger.hilt)

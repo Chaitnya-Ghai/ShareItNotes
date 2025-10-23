@@ -9,7 +9,9 @@ import com.chaitnya.auth.domain.use_cases.LogoutUseCase
 import com.chaitnya.auth.domain.use_cases.RegisterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOn
@@ -39,9 +41,6 @@ class AuthViewModel @Inject constructor(
     private val _name = MutableStateFlow("")
     val name = _name.asStateFlow()
 
-    private val _isLogin = MutableStateFlow(true)
-    val isLogin = _name.asStateFlow()
-
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
@@ -54,10 +53,8 @@ class AuthViewModel @Inject constructor(
     fun onNameChange(name: String){
         _name.update { name }
     }
-    fun onToggleChange(){
-        _isLogin.update { it.not() }
-    }
-
+    private val _isError = MutableSharedFlow<String?>()
+    val isError :SharedFlow<String?> = _isError
 
     fun login() {
         logInUseCase(email.value, password.value).onStart { _isLoading.update { true } }
@@ -66,9 +63,14 @@ class AuthViewModel @Inject constructor(
                     _uiState.update { it.copy(navigateToNotesNavGraph = true) }
                     _isLoading.update { false }
                 }.onFailure { error ->
+                    _isLoading.update { false }
+                    _isError.emit(error.message.toString())
                 }
-            }.catch { _isLoading.update { false } }
+            }.catch {
+                _isLoading.update { false }
+            }
             .onCompletion {
+                _isLoading.update { false }
                 _uiState.update { it.copy(navigateToNotesNavGraph = true) }
             }
             .flowOn(Dispatchers.IO)
@@ -82,10 +84,14 @@ class AuthViewModel @Inject constructor(
                 result.onSuccess { data ->
                     _uiState.update { it.copy(navigateToNotesNavGraph = true) }
                 }.onFailure { error ->
-
+                    _isLoading.update { false }
+                    _isError.emit(error.message.toString())
                 }
-            }.catch { _isLoading.update { false } }
+            }.catch {
+                _isLoading.update { false }
+            }
             .onCompletion {
+                _isLoading.update { false }
                 _uiState.update { it.copy(navigateToNotesNavGraph = true) }
             }
             .flowOn(Dispatchers.IO)

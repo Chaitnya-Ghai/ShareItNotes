@@ -4,6 +4,8 @@ import com.chaitnya.notes.domain.repository.NotesRepository
 import com.chaitnya.notes.domain.useCases.CreateNoteUseCase
 import com.chaitnya.notes.domain.useCases.DeleteNoteUseCase
 import com.chaitnya.notes.domain.useCases.GetAllNoteUseCase
+import com.chaitnya.notes.domain.useCases.GetNoteByIdUseCase
+import com.chaitnya.notes.domain.useCases.UpdateNoteUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,5 +27,12 @@ object NotesDomainModule {
     fun provideCreateNoteUseCase(notesRepo: NotesRepository) : CreateNoteUseCase {
         return CreateNoteUseCase(notesRepo)
     }
-
+    @Provides
+    fun provideUpdateNoteUseCase(notesRepo: NotesRepository): UpdateNoteUseCase{
+        return UpdateNoteUseCase(notesRepo)
+    }
+    @Provides
+    fun provideGetNoteByIdUseCase(notesRepo: NotesRepository): GetNoteByIdUseCase{
+        return GetNoteByIdUseCase(notesRepo)
+    }
 }

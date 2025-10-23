@@ -5,7 +5,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import com.chaitnya.auth.AuthScreen
+import com.chaitnya.auth.LoginScreen
 import com.chaitnya.auth.RegisterScreen
 import kotlinx.serialization.Serializable
 
@@ -39,7 +39,7 @@ object AuthNavGraph: BaseNavGraph {
     ) {
         navGraphBuilder.navigation<Dest.Root>( startDestination = Dest.Login){
             composable<Dest.Login>  {
-                AuthScreen(
+                LoginScreen(
                     modifier,
                     onNavigateToRegister={
                         navController.navigate(Dest.Register)
@@ -56,7 +56,14 @@ object AuthNavGraph: BaseNavGraph {
             composable<Dest.Register> {
                 RegisterScreen(
                     modifier = Modifier,
-                    popToRegisterScreen = { navController.popBackStack() } ,
+                    navigateToLogin = { navController.popBackStack() } ,
+                    navigateToNotesNavGraph={
+                        navController.navigate(NotesNavGraph.Dest.Root){
+                            popUpTo(0){
+                                inclusive = true
+                            }
+                        }
+                    }
                 )
             }
             composable<Dest.ForgotPassword> {  }

@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -33,7 +34,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ShareItNotesTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Surface(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
                     NavHost(navController, startDestination = if (firebaseAuth.currentUser==null) AuthNavGraph.Dest.Root else NotesNavGraph.Dest.Root) {
                         listOf<BaseNavGraph>(
@@ -41,7 +42,7 @@ class MainActivity : ComponentActivity() {
                             NotesNavGraph
                         ).forEach {
                             it.build(
-                                modifier = Modifier.padding(innerPadding),
+                                modifier = Modifier,
                                 navController,
                                 this
                             )
