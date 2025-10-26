@@ -1,10 +1,12 @@
 package com.chaitnya.shareitnotes.navigation
 
+import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import com.chaitnya.auth.Dummy
 import com.chaitnya.auth.LoginScreen
 import com.chaitnya.auth.RegisterScreen
 import kotlinx.serialization.Serializable
@@ -67,7 +69,9 @@ object AuthNavGraph: BaseNavGraph {
                 )
             }
             composable<Dest.ForgotPassword> {  }
-            composable<Dest.ResetPassword> {  }
+            composable<Dest.ResetPassword> {
+                Dummy(modifier)
+            }
             composable<Dest.VerifyOtp> {  }
         }
     }

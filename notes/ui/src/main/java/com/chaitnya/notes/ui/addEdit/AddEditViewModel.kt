@@ -1,5 +1,6 @@
 package com.chaitnya.notes.ui.addEdit
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chaitnya.auth.domain.model.User
@@ -110,10 +111,12 @@ class AddEditViewModel @Inject constructor(
                         _isError.emit(e.message ?: "Unknown error occurred")
                     }
                 )
+                _imgData.update { ByteArray(0) }
             }
             .catch { e ->
                 _isError.emit(e.message ?: "Unknown error occurred")
                 _isLoading.update { false }
+                _imgData.update { ByteArray(0) }
             }
             .onCompletion {
                 _isLoading.update { false }
@@ -167,12 +170,19 @@ class AddEditViewModel @Inject constructor(
         )
 
         updateNoteUseCase(newImageBytes, updatedNote)
-            .onStart { _isLoading.update { true } }
+            .onStart {
+                _isLoading.update { true }
+                Log.e("TAG", "current Note :  \n $currentNote")
+                Log.e("TAG", "updated Note :  \n $updatedNote")
+            }
             .retry(2) { it is IOException }
             .onEach { result ->
                 result.fold(
                     onSuccess = { _isSaved.emit(Unit) },
-                    onFailure = { e -> _isError.emit(e.message ?: "Unknown error occurred") }
+                    onFailure = { e ->
+                        Log.e("updateNote", "error in onFailure block: ${e.message}")
+                        _isError.emit(e.message ?: "Unknown error occurred")
+                    }
                 )
             }
             .onCompletion {
@@ -181,6 +191,7 @@ class AddEditViewModel @Inject constructor(
                 _imgData.update { ByteArray(0) }
             }
             .catch { e ->
+                Log.e("updateNote", "error in catch block: ${e.message}")
                 _isError.emit(e.message ?: "Unknown error occurred")
                 _isLoading.update { false }
             }

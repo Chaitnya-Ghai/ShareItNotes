@@ -34,9 +34,13 @@ object NotesNavGraph : BaseNavGraph {
             startDestination = Dest.NoteList
         ){
             composable<Dest.NoteList> {
-                NotesScreen(modifier , goToAddEditNoteScreen={
-                    navController.navigate(Dest.NoteDetail(it))
-                })
+                NotesScreen(
+                    modifier,
+                    goToAddEditNoteScreen = {
+                        navController.navigate(Dest.NoteDetail(it))
+                    },
+                    goToEditProfile = {  navController.navigate(AuthNavGraph.Dest.ResetPassword )}
+                )
             }
             composable<Dest.NoteDetail> { noteDetail ->
                 val id = noteDetail.toRoute<Dest.NoteDetail>().noteId

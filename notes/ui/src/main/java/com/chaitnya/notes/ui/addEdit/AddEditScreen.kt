@@ -1,8 +1,14 @@
 package com.chaitnya.notes.ui.addEdit
 
+import android.graphics.BitmapFactory
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,15 +16,31 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.MailOutline
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,7 +60,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,6 +75,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.rememberAsyncImagePainter
 import com.chaitnya.notes.ui.ui.theme.ShareItNotesTheme
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -67,10 +96,22 @@ fun AddEditScreen(
     val note by viewModel.editNote.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val errorMessage by viewModel.isError.collectAsState(initial = null)
-
+    val imgData by viewModel.imgData.collectAsStateWithLifecycle()
+    val imgUrl by viewModel.imgUrl.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
-    // Load note if id exists
+    val imgPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { resultUri->
+            resultUri?.let {
+                // Convert URI → ByteArray
+                val inputStream = context.contentResolver.openInputStream(it)
+                val byteArray = inputStream?.readBytes() ?: ByteArray(0)
+                viewModel.setUriAsByteArray(byteArray)
+            }
+        }
+    )
     LaunchedEffect(id) {
         id?.let { viewModel.loadNoteData(it) }
     }
@@ -132,6 +173,9 @@ fun AddEditScreen(
                     onTitleChange = viewModel::setTitle,
                     onContentChange = viewModel::setContent,
                     onSharedChange = viewModel::setShared,
+                    imgPickerLauncher = { imgPickerLauncher.launch("image/*") },
+                    imgData = imgData,
+                    imgUrl=imgUrl
                 )
             } else {
                 AddEditScreenContent(
@@ -142,6 +186,7 @@ fun AddEditScreen(
                     onTitleChange = viewModel::setTitle,
                     onContentChange = viewModel::setContent,
                     onSharedChange = viewModel::setShared,
+                    imgPickerLauncher = { imgPickerLauncher.launch("image/*") }
                 )
             }
 
@@ -172,15 +217,24 @@ fun AddEditScreenContent(
     onTitleChange: (String) -> Unit,
     onContentChange: (String) -> Unit,
     onSharedChange: (Boolean) -> Unit,
+    imgPickerLauncher: () -> Unit,
+    imgData: ByteArray? = null,
+    imgUrl: String? = null
 ) {
-    Column(modifier = modifier ) {
+    Column(modifier = modifier.padding(4.dp)) {
+        ImageSection(
+            imgData = imgData,
+            onPickImage = imgPickerLauncher,
+            onRemoveImage = {},
+            imgUrl = imgUrl
+        )
         TextField(
             value = title,
             onValueChange = onTitleChange,
             modifier = Modifier.fillMaxWidth(),
             textStyle = androidx.compose.ui.text.TextStyle(fontSize = 24.sp),
             colors = TextFieldDefaults.colors(
-                Color.Transparent,
+                Color.Black,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 unfocusedContainerColor = Color.White.copy(alpha = 0.5f),
@@ -213,7 +267,6 @@ fun AddEditScreenContent(
                 imeAction = ImeAction.Done
             )
         )
-
         Spacer(modifier = Modifier.height(8.dp))
         Row(
             modifier = Modifier
@@ -242,6 +295,7 @@ private fun DPrev() {
             onTitleChange = {},
             onContentChange = {},
             onSharedChange = {},
+            imgPickerLauncher = { }
         )
     }
 }
@@ -294,7 +348,139 @@ fun PreviewAddEditScreen() {
                 onTitleChange = {},
                 onContentChange = {},
                 onSharedChange = {},
+                imgPickerLauncher = { }
             )
+        }
+    }
+}
+
+@Composable
+fun ImageSection(
+    imgData: ByteArray?,
+    onPickImage: () -> Unit,
+    onRemoveImage: () -> Unit,
+    imgUrl: String? = null
+) {
+    val imageBitmap = remember(imgData) {
+        imgData?.takeIf { it.isNotEmpty() }?.let {
+            BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap()
+        }
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp)
+            .heightIn(min = 180.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 200.dp)
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color(0xFFF8FBFF), Color(0xFFE3F2FD))
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                imageBitmap != null -> {
+                    Image(
+                        bitmap = imageBitmap,
+                        contentDescription = "Selected Image",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 200.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { onPickImage() },
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                imgUrl?.isNotEmpty() == true -> {
+                    Image(
+                        painter = rememberAsyncImagePainter(model = imgUrl),
+                        contentDescription = "Note Image",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 200.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { onPickImage() },
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                // Case 3 No image selected yet
+                else -> {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Add Image",
+                            tint = Color.Gray,
+                            modifier = Modifier.size(60.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Tap below to add an image",
+                            color = Color.Gray,
+                            fontSize = 15.sp
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        ElevatedButton(
+                            onClick = onPickImage,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF1976D2)
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = "Pick image")
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Select Image")
+                        }
+                    }
+                }
+            }
+
+            // Overlay buttons for remove / replace (if image exists)
+            if (imageBitmap != null || imgUrl?.isNotEmpty() == true) {
+                // Remove Button
+                IconButton(
+                    onClick = onRemoveImage,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .background(Color.White.copy(alpha = 0.7f), shape = CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Remove Image",
+                        tint = Color.Red
+                    )
+                }
+
+                // Replace Button
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.4f))
+                        .clickable { onPickImage() }
+                        .padding(10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Replace Image",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
         }
     }
 }

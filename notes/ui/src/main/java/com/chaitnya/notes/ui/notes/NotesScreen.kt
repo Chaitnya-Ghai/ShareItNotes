@@ -1,5 +1,6 @@
 package com.chaitnya.notes.ui.notes
 
+import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -7,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,17 +20,23 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -45,37 +53,40 @@ import coil.compose.rememberAsyncImagePainter
 import com.chaitnya.notes.domain.model.Note
 import com.chaitnya.notes.ui.ui.theme.ShareItNotesTheme
 
+val listOfColors = listOf(
+    Color(0xFFE0E6F4),
+    Color(0xFFF5EBF2),
+    Color(0xFFFCF4A5),
+    Color(0xFFFBC8C9),
+    Color(0xFFCCEDED)
+)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotesScreen(modifier: Modifier = Modifier, goToAddEditNoteScreen:(String?)-> Unit) {
+fun NotesScreen(modifier: Modifier = Modifier, goToAddEditNoteScreen:(String?)-> Unit , goToEditProfile:()-> Unit) {
     val viewModel = hiltViewModel<NotesViewModel>()
     val notesList by viewModel.notes.collectAsStateWithLifecycle()
-    NoteScreenContent(
-        modifier = modifier,
-        notes = notesList,
-        onDelete = viewModel::deleteNote,
-        goToAddEditNoteScreen = goToAddEditNoteScreen
-        )
-
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun NoteScreenContent(
-    modifier: Modifier = Modifier,
-    notes: List<Note>,
-    onDelete: (String) -> Unit,
-    goToAddEditNoteScreen: (String?) -> Unit
-) {
-    val listOfColors = listOf(
-        Color(0xFFE0E6F4),
-        Color(0xFFF5EBF2),
-        Color(0xFFFCF4A5),
-        Color(0xFFFBC8C9),
-        Color(0xFFCCEDED)
-    )
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                ),
+                title = {
+                    Text("Notes")
+                },
+                actions = {
+                    IconButton(onClick = {
+                        Log.e("TAG clicked", "NotesScreen: $this is clicked ", )
+                        goToEditProfile()
+                    }){
+                        Icon(Icons.Default.AccountCircle , null)
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { goToAddEditNoteScreen(null) },
@@ -89,14 +100,43 @@ fun NoteScreenContent(
                 )
             }
         }
-    ) { paddingValues ->
+    ) {
+        if (notesList.isEmpty()) {
+            Box(
+                modifier = modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No notes yet ✨",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                )
+            }
+        } else {
+            NoteScreenContent(
+                modifier = modifier.padding(it),
+                notes = notesList,
+                onDelete = viewModel::deleteNote,
+                goToAddEditNoteScreen = goToAddEditNoteScreen
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun NoteScreenContent(
+    modifier: Modifier = Modifier,
+    notes: List<Note>,
+    onDelete: (String) -> Unit,
+    goToAddEditNoteScreen: (String?) -> Unit
+) {
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
             verticalItemSpacing = 12.dp,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(16.dp),
             modifier = modifier
-                .padding(paddingValues)
                 .fillMaxSize()
         ) {
             items(
@@ -112,7 +152,6 @@ fun NoteScreenContent(
                 )
             }
         }
-    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -135,7 +174,7 @@ private fun NoteCard(
             .shadow(4.dp, RoundedCornerShape(20.dp))
             .clip(RoundedCornerShape(20.dp))
             .background(backgroundColor)
-            .graphicsLayer{
+            .graphicsLayer {
                 scaleX = scale.value
                 scaleY = scale.value
             }

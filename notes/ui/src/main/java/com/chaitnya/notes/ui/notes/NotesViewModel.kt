@@ -1,5 +1,6 @@
 package com.chaitnya.notes.ui.notes
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chaitnya.auth.domain.model.User
@@ -26,17 +27,19 @@ class NotesViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            _user.update { getCurrentUserUseCase() }
+            _user.value = getCurrentUserUseCase()
+            // then fetch notes
+            getNotes()
         }
-        getNotes()
     }
     private val _notes = MutableStateFlow<List<Note>>(emptyList())
     val notes = _notes.asStateFlow()
 
     fun getNotes(){
         getAllNotesUseCase(email = _user.value?.email.orEmpty())
-            .onEach {
-                _notes.update { it }
+            .onEach { it ->
+                _notes.value = it
+                Log.e("TAG", "getNotes: ${it.size} \n $it")
         }.launchIn(viewModelScope)
     }
 

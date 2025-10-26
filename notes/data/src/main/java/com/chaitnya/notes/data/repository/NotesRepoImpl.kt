@@ -93,36 +93,43 @@ class NotesRepoImpl(
     }.flowOn(Dispatchers.IO)
 
     override fun updateNotes(newImageBytes: ByteArray?, note: Note): Flow<Result<Unit>> = flow {
-        val (imgPath, imgUrl) = if (newImageBytes != null) {
-            val uploadResult = uploadImageToSupabase(newImageBytes)
-            if (uploadResult.isFailure) {
-                emit(Result.failure(uploadResult.exceptionOrNull()!!))
-                return@flow
-            }
+        try {
+            val (imgPath, imgUrl) = when {
+                // Case 1: No new image selected (null or empty) → keep old image
+                newImageBytes == null || newImageBytes.isEmpty() -> {
+                    note.imgPath to note.imgUrl
+                }
 
-            val uploaded = uploadResult.getOrNull()
-            if (uploaded == null) {
-                emit(Result.failure(Exception("Image upload failed")))
-                return@flow
-            }
+                //  Case 2: New image selected → upload new, delete old asynchronously
+                else -> {
+                    val uploadResult = uploadImageToSupabase(newImageBytes)
+                    if (uploadResult.isFailure) {
+                        emit(Result.failure(uploadResult.exceptionOrNull()!!))
+                        return@flow
+                    }
 
-            val (newPath, newUrl) = uploaded
+                    val uploaded = uploadResult.getOrNull()
+                    if (uploaded == null) {
+                        emit(Result.failure(Exception("Image upload failed")))
+                        return@flow
+                    }
 
-            // Delete old image asynchronously with retry
-            coroutineScope {
-                launch(Dispatchers.IO) {
-                    val res = deleteImage(note.imgPath)
-                    if (res.isFailure) println("Failed to delete old image: ${note.imgPath}")
+                    val (newPath, newUrl) = uploaded
+
+                    // Delete old image in background
+                    coroutineScope {
+                        launch(Dispatchers.IO) {
+                            val res = deleteImage(note.imgPath)
+                            if (res.isFailure) {
+                                println("⚠️ Failed to delete old image: ${note.imgPath}")
+                            }
+                        }
+                    }
+                    newPath to newUrl
                 }
             }
 
-
-            newPath to newUrl
-        } else {
-            note.imgPath to note.imgUrl
-        }
-
-        try {
+            // 🟡 Step 3: Update Firestore document
             notesCollection.document(note.id).update(
                 mapOf(
                     "title" to note.title,
@@ -130,10 +137,12 @@ class NotesRepoImpl(
                     "shared" to note.shared,
                     "imgPath" to imgPath,
                     "imgUrl" to imgUrl,
-                    "email" to note.email // Ensuring email is always present
+                    "email" to note.email // Always include email
                 )
             ).await()
+
             emit(Result.success(Unit))
+
         } catch (e: Exception) {
             emit(Result.failure(e))
         }
