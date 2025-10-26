@@ -17,6 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import com.chaitnya.shareitnotes.navigation.AuthNavGraph
 import com.chaitnya.shareitnotes.navigation.BaseNavGraph
 import com.chaitnya.shareitnotes.navigation.NotesNavGraph
+import com.chaitnya.shareitnotes.navigation.SharedNotesNavGraph
 import com.chaitnya.shareitnotes.ui.theme.ShareItNotesTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -39,7 +40,8 @@ class MainActivity : ComponentActivity() {
                     NavHost(navController, startDestination = if (firebaseAuth.currentUser==null) AuthNavGraph.Dest.Root else NotesNavGraph.Dest.Root) {
                         listOf<BaseNavGraph>(
                             AuthNavGraph,
-                            NotesNavGraph
+                            NotesNavGraph,
+                            SharedNotesNavGraph
                         ).forEach {
                             it.build(
                                 modifier = Modifier,

@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -62,7 +63,7 @@ val listOfColors = listOf(
 )
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotesScreen(modifier: Modifier = Modifier, goToAddEditNoteScreen:(String?)-> Unit , goToEditProfile:()-> Unit) {
+fun NotesScreen(modifier: Modifier = Modifier, goToAddEditNoteScreen:(String?)-> Unit , goToEditProfile:()-> Unit , navigateToSharedNotes:()-> Unit ) {
     val viewModel = hiltViewModel<NotesViewModel>()
     val notesList by viewModel.notes.collectAsStateWithLifecycle()
 
@@ -79,7 +80,12 @@ fun NotesScreen(modifier: Modifier = Modifier, goToAddEditNoteScreen:(String?)->
                 },
                 actions = {
                     IconButton(onClick = {
-                        Log.e("TAG clicked", "NotesScreen: $this is clicked ", )
+                        navigateToSharedNotes()
+                    }){
+                        Icon(Icons.Default.Share , null)
+                    }
+
+                    IconButton(onClick = {
                         goToEditProfile()
                     }){
                         Icon(Icons.Default.AccountCircle , null)

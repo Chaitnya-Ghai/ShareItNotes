@@ -39,7 +39,8 @@ object NotesNavGraph : BaseNavGraph {
                     goToAddEditNoteScreen = {
                         navController.navigate(Dest.NoteDetail(it))
                     },
-                    goToEditProfile = {  navController.navigate(AuthNavGraph.Dest.ResetPassword )}
+                    goToEditProfile = {  navController.navigate(AuthNavGraph.Dest.ResetPassword )},
+                    navigateToSharedNotes = {navController.navigate(SharedNotesNavGraph.Dest.Root)}
                 )
             }
             composable<Dest.NoteDetail> { noteDetail ->
