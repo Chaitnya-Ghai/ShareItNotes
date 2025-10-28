@@ -4,6 +4,7 @@ import com.chaitnya.sharedNotes.domain.model.SharedNote
 import com.chaitnya.sharedNotes.domain.repository.SharedNotesRepository
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
 class SharedNoteRepoImpl(
@@ -17,15 +18,18 @@ class SharedNoteRepoImpl(
     private var docSnapshot : DocumentSnapshot?=null
     private var _isLoading = false
     private var _endPagination : Boolean = false
-    private var pageSize = 3
+    private var pageSize = 4
     override suspend fun getSharedNotes(): List<SharedNote> {
         if (_isLoading || _endPagination) return emptyList()
         _isLoading = true
 
-        val query = notesCollection.whereEqualTo("shared",true)
+        var query = notesCollection
+            .whereEqualTo("shared", true)
+            .orderBy("timeStamp", Query.Direction.DESCENDING)
+            .orderBy("id", Query.Direction.DESCENDING)
             .limit(pageSize.toLong())
         docSnapshot?.let {
-            query.startAfter(it)
+            query = query.startAfter(it.get("timeStamp"), it.get("id"))
         }
 
         try {

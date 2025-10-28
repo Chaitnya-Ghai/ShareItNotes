@@ -25,7 +25,7 @@ object SharedNotesNavGraph: BaseNavGraph {
     ) {
         navGraphBuilder.navigation<Dest.Root>(startDestination = Dest.SharedNotes){
             composable<Dest.SharedNotes> {
-                SharedNotesScreen(modifier)
+                SharedNotesScreen(modifier, popBackStack = { navController.popBackStack() })
             }
         }
     }
