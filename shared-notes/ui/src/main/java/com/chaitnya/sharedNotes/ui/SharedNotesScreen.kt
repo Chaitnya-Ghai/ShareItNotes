@@ -88,7 +88,7 @@ fun SharedNotesScreenContent(
                 .padding(innerPadding)
                 .fillMaxSize(),
             state = lazyListState,
-            contentPadding = PaddingValues(bottom = 120.dp)
+            contentPadding = PaddingValues(bottom = 20.dp)
         ) {
             items(
                 count = list.size,
@@ -102,8 +102,14 @@ fun SharedNotesScreenContent(
                 ) {
                     val item = list[index]
                     Column(modifier= Modifier.fillMaxWidth()){
-                        Row (modifier= Modifier.padding( horizontal = 12.dp).padding(top = 12.dp).padding(bottom = 12.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically){
-                            Box(modifier = Modifier.size(60.dp).background(Color.Black, shape = CircleShape), Alignment.Center) {
+                        Row (modifier= Modifier
+                            .padding(horizontal = 12.dp)
+                            .padding(top = 12.dp)
+                            .padding(bottom = 12.dp)
+                            .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically){
+                            Box(modifier = Modifier
+                                .size(60.dp)
+                                .background(Color.Black, shape = CircleShape), Alignment.Center) {
                                 Text(item.email.first().uppercase() , color = Color.White)
                             }
                             Spacer(modifier= Modifier.width(8.dp))
@@ -111,10 +117,15 @@ fun SharedNotesScreenContent(
 
                         }
                         SubcomposeAsyncImage(
-                            modifier = Modifier.padding(horizontal = 4.dp).fillMaxWidth().height(250.dp),
+                            modifier = Modifier
+                                .padding(horizontal = 4.dp)
+                                .fillMaxWidth()
+                                .height(250.dp),
                             model = item.imgUrl, loading = {
                                 Box(
-                                    modifier = Modifier.fillMaxWidth().height(250.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(250.dp),
                                     Alignment.Center
                                 ){
                                     CircularProgressIndicator()
@@ -123,7 +134,9 @@ fun SharedNotesScreenContent(
                             contentScale = ContentScale.Crop,
                             error = {
                                 Box(
-                                    modifier = Modifier.fillMaxWidth().height(250.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(250.dp),
                                     Alignment.Center
                                 ){
                                     Text(item.email, style = MaterialTheme.typography.titleLarge)
@@ -132,26 +145,22 @@ fun SharedNotesScreenContent(
                             contentDescription = null,
                         )
                         Spacer(modifier= Modifier.height(12.dp))
-                        Text(item.title, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), modifier= Modifier.padding(horizontal = 12.dp , vertical = 4.dp).fillMaxWidth())
+                        Text(item.title, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), modifier= Modifier
+                            .padding(horizontal = 12.dp, vertical = 4.dp)
+                            .fillMaxWidth())
                         Spacer(modifier= Modifier.height(8.dp))
                         Text(
                             item.content,
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(horizontal = 12.dp)
-                                .padding(top=2.dp).padding(bottom = 12.dp).fillMaxWidth(),
+                            modifier = Modifier
+                                .padding(horizontal = 12.dp)
+                                .padding(top = 2.dp)
+                                .padding(bottom = 12.dp)
+                                .fillMaxWidth(),
                             overflow = TextOverflow.Ellipsis,
                             maxLines = 6
                         )
                     }
-                }
-            }
-            item{
-                Spacer(modifier = Modifier.height(100.dp))
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.size(30.dp))
                 }
             }
         }

@@ -186,7 +186,9 @@ fun AddEditScreen(
                     onTitleChange = viewModel::setTitle,
                     onContentChange = viewModel::setContent,
                     onSharedChange = viewModel::setShared,
-                    imgPickerLauncher = { imgPickerLauncher.launch("image/*") }
+                    imgPickerLauncher = { imgPickerLauncher.launch("image/*") },
+                    imgData = imgData,
+                    imgUrl=imgUrl
                 )
             }
 
